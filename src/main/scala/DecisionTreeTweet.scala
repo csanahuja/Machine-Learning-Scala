@@ -17,7 +17,6 @@ object DecisionTreeTweet {
 		val conf = new SparkConf().setAppName("DecisionTreeTweet")
 		val sc = new SparkContext(conf)
 
-
 		//Load Data into a RDD, modify route to required
 		val textRDD = sc.textFile("tweets.csv")
 

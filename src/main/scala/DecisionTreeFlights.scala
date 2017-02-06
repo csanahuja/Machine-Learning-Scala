@@ -11,15 +11,15 @@ import org.apache.spark.mllib.tree.DecisionTree
 import org.apache.spark.mllib.tree.model.DecisionTreeModel
 import org.apache.spark.mllib.util.MLUtils
 
-object MLApp {
+object DecisionTreeFlights {
 
 	def main(args: Array[String]) {
-		val conf = new SparkConf().setAppName("MLApp")
+		val conf = new SparkConf().setAppName("DecisionTreeFlights")
 		val sc = new SparkContext(conf)
 
 
 		//Load Data into a RDD, modify route to required
-		val textRDD = sc.textFile("Machine-Learning-Scala/flights.csv")
+		val textRDD = sc.textFile("flights.csv")
 
 		//Parse the RDD of csv lines into an RDD of flight classes
 		val flightsRDD = textRDD.map(parseFlight).cache()
