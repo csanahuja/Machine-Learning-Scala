@@ -18,8 +18,8 @@ object MLApp {
 		val sc = new SparkContext(conf)
 		
 		
-		//Load Data into a RDD
-		val textRDD = sc.textFile("/home/machine4/Project/flights.csv")
+		//Load Data into a RDD, modify route to required
+		val textRDD = sc.textFile("Machine-Learning-Scala/flights.csv")
 
 		//Parse the RDD of csv lines into an RDD of flight classes 
 		val flightsRDD = textRDD.map(parseFlight).cache()
