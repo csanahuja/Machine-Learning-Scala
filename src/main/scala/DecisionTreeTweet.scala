@@ -11,67 +11,47 @@ import org.apache.spark.mllib.tree.DecisionTree
 import org.apache.spark.mllib.tree.model.DecisionTreeModel
 import org.apache.spark.mllib.util.MLUtils
 
-object MLApp {
+object DecisionTreeTweet {
 
 	def main(args: Array[String]) {
-		val conf = new SparkConf().setAppName("MLApp")
+		val conf = new SparkConf().setAppName("DecisionTreeTweet")
 		val sc = new SparkContext(conf)
 
 
 		//Load Data into a RDD, modify route to required
-		val textRDD = sc.textFile("Machine-Learning-Scala/flights.csv")
+		val textRDD = sc.textFile("tweets.csv")
 
-		//Parse the RDD of csv lines into an RDD of flight classes
-		val flightsRDD = textRDD.map(parseFlight).cache()
-		cPrint(flightsRDD.first().toString)
-
-		// EXTRACT FEATURES: map string city to int
-		var cityMap: Map[String, Int] = Map()
-		var index: Int = 0
-		flightsRDD.map(flight => flight.src).distinct.collect.foreach(
-					   x => { cityMap += (x -> index); index += 1 })
-		cPrint(cityMap.toString)
+		//Parse the RDD of csv lines into an RDD of Tweet classes
+		val tweets2RDD = textRDD.map(parseTweet2).cache()
 
 		// DEFINE FEATURES ARRAY
-		val mlprep = flightsRDD.map(flight => {
-					  val src = cityMap(flight.src) // category
-					  val dest = cityMap(flight.dest) // category
-					  val id = flight.id.toInt
-					  val price = flight.price.toInt
-					  val expensive = if (flight.price.toInt > 500) 1 else 0
-					  Array(expensive.toInt, src.toInt, dest.toInt, id.toInt)
+		val mlprep = tweets2RDD.map(tweet => {
+					  val sentiment = tweet.sentiment.toInt
+            val sentiment2 = tweet.sentiment2.toInt
+            val relationship = tweet.relationship.toInt
+					  Array(relationship, sentiment, sentiment2)
 					})
-		println(mlprep.take(5).deep.mkString("\n"))
 
 		// CREATE LABELED POINTS
-		val mldata = mlprep.map(x => LabeledPoint(x(0), Vectors.dense(x(1), x(2), x(3))))
-		println(mldata.take(5).deep.mkString("\n"))
+		val mldata = mlprep.map(x => LabeledPoint(x(0), Vectors.dense(x(1), x(2))))
 
-		// SPLIT DATA: TRAINING SET - TEST SET
-		// Flights with price < 500 -> get 50%
-		val mldata0 = mldata.filter(x => x.label == 0.0).randomSplit(Array(0.50, 0.50))(1)
-		// Flights with price > 500 -> get 50%
-		val mldata1 = mldata.filter(x => x.label == 1.0).randomSplit(Array(0.50, 0.50))(1)
-		// FLights selected
-		//val mldata2 = mldata0 ++ mldata1
-		val mldata2 = mldata
 
-		//Split mldata2 into training and test data
-		val splits = mldata2.randomSplit(Array(0.3, 0.7))
+		//SPLIT MLDATA INTO TRAINING AND TEST DATA
+		val splits = mldata.randomSplit(Array(0.3, 0.7))
 		val (trainingData, testData) = (splits(0), splits(1))
 
 		// INFO ABOUT FEATURES
 		var categoricalFeaturesInfo = Map[Int, Int]()
-		categoricalFeaturesInfo += (0 -> cityMap.size) //src
-		categoricalFeaturesInfo += (1 -> cityMap.size) //dest
+		categoricalFeaturesInfo += (0 -> 101) //sentiment
+		categoricalFeaturesInfo += (0 -> 101) //sentiment2
 
 
 		// VALUES OF MODEL
-		val numClasses = 2
+		val numClasses = 3
 		// Defining values for the other parameters
 		val impurity = "gini"
 		val maxDepth = 10
-		val maxBins = 5000
+		val maxBins = 200
 
 		// Call DecisionTree trainClassifier with the trainingData , which returns the model
 		val model = DecisionTree.trainClassifier(trainingData, numClasses,
@@ -104,15 +84,18 @@ object MLApp {
 		sc.stop()
   	}
 
-	case class Flight(src: String, dest: String, id: Int, price: Int)
+	case class Tweet2(id:  Int, sentiment:  Int, id2: Int, sentiment2: Int,
+                    relationship: Int)
 
-	def parseFlight(str: String): Flight = {
+	def parseTweet2(str: String): Tweet2 = {
 		val line = str.split(",")
-		Flight(line(0), line(1), line(2).toInt, line(3).toInt)
+		Tweet2(line(0).toInt, line(1).toInt, line(2).toInt, line(3).toInt,
+           line(4).toInt)
 	}
 
 	def cPrint(str: String) {
 		val output = "\n" + str + "\n\n"
 		print(output)
 	}
+
 }

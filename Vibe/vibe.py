@@ -23,17 +23,17 @@ class Vibe :
 
   def __init__( self, language ) :
     if language == 'en' :
-      filename1 = "pos-adjectives.txt"
-      filename2 = "neg-adjectives.txt"
-      afinn_filename = "AFINN-111.txt"
+      filename1 = "Vibe/pos-adjectives.txt"
+      filename2 = "Vibe/neg-adjectives.txt"
+      afinn_filename = "Vibe/AFINN-111.txt"
     elif language == 'es' :
-      filename1 = "pos-adjectives-es.txt"
-      filename2 = "neg-adjectives-es.txt"
-      afinn_filename = "AFINN-111-es.txt"
+      filename1 = "Vibe/pos-adjectives-es.txt"
+      filename2 = "Vibe/neg-adjectives-es.txt"
+      afinn_filename = "Vibe/AFINN-111-es.txt"
     else :
-      filename1 = "empty.txt"
-      filename2 = "empty.txt"
-      afinn_filename = "empty.txt"
+      filename1 = "Vibe/empty.txt"
+      filename2 = "Vibe/empty.txt"
+      afinn_filename = "Vibe/empty.txt"
 
     self.positive_words = []
     for line in open( filename1 ) :
