@@ -15,10 +15,9 @@ if __name__ == '__main__' :
 	src = 0
 	dest = 0
 
-	ff = open(sys.argv[1], 'w+')
-	for i in xrange(int(sys.argv[2])):
+	ff = open('flights.csv', 'w+')
+	for i in xrange(int(sys.argv[1])):
 		price = random.randint(50, 1000)
 		src = random.randint(0,len(city)-1)
 		dest = random.randint(0,len(city)-1)
 		ff.write(city[src]+","+city[dest]+","+str(i)+","+str(price)+"\n")
-

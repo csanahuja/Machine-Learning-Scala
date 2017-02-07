@@ -49,7 +49,7 @@ object DecisionTreeTweet {
 		val numClasses = 3
 		// Defining values for the other parameters
 		val impurity = "gini"
-		val maxDepth = 10
+		val maxDepth = 8
 		val maxBins = 200
 
 		// Call DecisionTree trainClassifier with the trainingData , which returns the model
@@ -69,27 +69,24 @@ object DecisionTreeTweet {
 		val wrongPrediction =(labelAndPreds.filter{
 			case (label, prediction) => ( label != prediction)
 			})
-		println(labelAndPreds.take(10000).deep.mkString("\n"))
 
 		val good = goodPrediction.count()
 		val wrong = wrongPrediction.count()
-		val ratioWrong=wrong.toDouble/testData.count()
+		val ratio = good.toDouble/testData.count()
 
-		val results = "Good Prediction : " + good.toString + "\n" +
-					  "Wrong Prediction: " + wrong.toString + "\n" +
-					  "Ratio Wrong     : " + ratioWrong.toString + "\n"
+		val results = "Result: Good Prediction : " + good.toString + "\n" +
+					  "Result: Wrong Prediction: " + wrong.toString + "\n" +
+					  "Result: Ratio: " + ratio.toString + "\n"
 		cPrint(results)
 
 		sc.stop()
   	}
 
-	case class Tweet2(id:  Int, sentiment:  Int, id2: Int, sentiment2: Int,
-                    relationship: Int)
+	case class Tweet2(relationship:  Int, sentiment:  Int, sentiment2: Int)
 
 	def parseTweet2(str: String): Tweet2 = {
 		val line = str.split(",")
-		Tweet2(line(0).toInt, line(1).toInt, line(2).toInt, line(3).toInt,
-           line(4).toInt)
+		Tweet2(line(0).toInt, line(1).toInt, line(2).toInt)
 	}
 
 	def cPrint(str: String) {

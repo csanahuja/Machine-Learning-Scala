@@ -49,19 +49,17 @@ if __name__ == '__main__' :
 	criteria = 0
 	sentiment1 = 0
 	sentiment2 = 0
-	file_format = sys.argv[1].split(".")[1]
 
 
-	ff = open(sys.argv[1], 'w+')
-	for i in xrange(1000):
+	fftxt = open("tweets.txt", 'w+')
+	ffcsv = open("tweets.csv", 'w+')
+
+	for i in xrange(int(sys.argv[1])):
 		sentiment1 = random.randint(-50, 50)
 		sentiment2 = random.randint(-50, 50)
 		criteria = getCriteria(sentiment1, sentiment2)
 
 		#LIBSVM
-		if file_format == 'txt':
-			ff.write(str(criteria) + " 1:" + str(sentiment1+50) + " 2:" +
-					str(sentiment2+50) + "\n")
+		fftxt.write(str(criteria) + " 1:" + str(sentiment1+50) + " 2:" + str(sentiment2+50) + "\n")
 		#CSV
-		if file_format =='csv':
-			ff.write(str(criteria)+","+str(sentiment1+50)+","+str(sentiment2+50)+"\n")
+		ffcsv.write(str(criteria)+","+str(sentiment1+50)+","+str(sentiment2+50)+"\n")
