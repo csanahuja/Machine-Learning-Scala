@@ -16,7 +16,7 @@ object MultilayeredPerceptronTweet {
   //START OF - TO BE MODIFIED TOMORROW TUESDAY
   // Load the data stored in LIBSVM format as a DataFrame.
   val data = spark.read.format("libsvm")
-    .load("data/mllib/sample_multiclass_classification_data.txt")
+    .load("tweets.txt")
 
   // Split the data into train and test
   val splits = data.randomSplit(Array(0.6, 0.4), seed = 1234L)
