@@ -28,7 +28,7 @@ object MultilayerPerceptronTweet {
     val test = splits(1)
 
     // specify layers for the neural network:
-    // input layer of size 3 (features), two intermediate of size 5 and 4
+    // input layer of size 2 (features), two intermediate of size 200 and 100
     // and output of size 3 (classes)
     val layers = Array[Int](2,200,100, 3)
 
@@ -48,13 +48,7 @@ object MultilayerPerceptronTweet {
     val evaluator = new MulticlassClassificationEvaluator()
       .setMetricName("accuracy")
 
-    println("Test set accuracy = " + evaluator.evaluate(predictionAndLabels))
-
-
-    // val results = "Result: Good Prediction : " + good.toString + "\n" +
-    //         "Result: Wrong Prediction: " + wrong.toString + "\n" +
-    //         "Result: Ratio: " + ratio.toString + "\n"
-    // cPrint(results)
+    println("Result: accuracy = " + evaluator.evaluate(predictionAndLabels))
 
     spark.stop()
     }
