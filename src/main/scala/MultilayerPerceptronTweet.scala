@@ -27,7 +27,7 @@ object MultilayerPerceptronTweet {
       .load("tweets.txt")
 
     // Split the data into train and test
-    val splits = data.randomSplit(Array(0.3, 0.7))
+    val splits = data.randomSplit(Array(0.5, 0.5))
     val train = splits(0)
     val test = splits(1)
 
@@ -50,7 +50,7 @@ object MultilayerPerceptronTweet {
     debugModels(best_model,accuracies)
 
     // Save model
-    model.save("MultilayerPerceptronTweet")
+    models(best_model).write.overwrite().save("target/tmp/MultilayerPerceptronTweet")
 
     spark.stop()
     }

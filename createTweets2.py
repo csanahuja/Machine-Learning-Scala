@@ -42,17 +42,15 @@ def getCriteria(sentiment1, sentiment2):
 #MAIN expects one params, the file where to save the output
 if __name__ == '__main__' :
 
-	#TO DO
-	#Construct Vibe instance, param is language
-	vibe = Vibe("en")
-
 	criteria = 0
 	sentiment1 = 0
 	sentiment2 = 0
 
 
 	fftxt = open("tweets.txt", 'w+')
+	fftxt2 = open("tweets2.txt", 'w+')
 	ffcsv = open("tweets.csv", 'w+')
+	ffcsv2 = open("tweets2.csv", 'w+')
 
 	for i in xrange(int(sys.argv[1])):
 		sentiment1 = random.randint(-50, 50)
@@ -61,5 +59,7 @@ if __name__ == '__main__' :
 
 		#LIBSVM
 		fftxt.write(str(criteria) + " 1:" + str(sentiment1+50) + " 2:" + str(sentiment2+50) + "\n")
+		fftxt2.write("1:" + str(sentiment1+50) + " 2:" + str(sentiment2+50) + "\n")
 		#CSV
 		ffcsv.write(str(criteria)+","+str(sentiment1+50)+","+str(sentiment2+50)+"\n")
+		ffcsv2.write(str(sentiment1+50)+","+str(sentiment2+50)+"\n")
