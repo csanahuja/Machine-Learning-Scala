@@ -5,6 +5,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark._
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.ml.linalg.Vector
 
 import scala.util.Random
 
@@ -22,12 +23,16 @@ object MultilayerPerceptronTweet {
       .appName("MultilayerPerceptronTweet")
       .getOrCreate()
 
+    if (args.size < 1){
+      println("Usage: arg1: input_file")
+      System.exit(1)
+    }
     // Load the data stored in LIBSVM format as a DataFrame.
     val data = spark.read.format("libsvm")
-      .load("tweets.txt")
+      .load(args(0))
 
     // Split the data into train and test
-    val splits = data.randomSplit(Array(0.5, 0.5))
+    val splits = data.randomSplit(Array(0.75, 0.25))
     val train = splits(0)
     val test = splits(1)
 
@@ -39,9 +44,13 @@ object MultilayerPerceptronTweet {
     //val layers = Array[Int](2, 200, 200, 3)
 
     // Generate 10 models with different layers
+    val vector = data.first().getAs[Vector](1)
+    val numFeatures = vector.size
+    val classes = 3
+
     for(i <- 1 to num_models){
-      val layers = getRandomLayer()
-      models(i-1) = generateModel(data, layers)
+      val layers = getRandomLayer(numFeatures,classes)
+      models(i-1) = generateModel(train, layers)
       accuracies(i-1) = getAccuracy(models(i-1), test)
     }
 
@@ -62,7 +71,7 @@ object MultilayerPerceptronTweet {
       println("Results best" + best_model)
     }
 
-    def getRandomLayer(): Array[Int] = {
+    def getRandomLayer(num_features : Int, output_classes: Int): Array[Int] = {
       val r = Random
       var num_layers = r.nextInt(5)
       if (num_layers != 0)
@@ -70,10 +79,10 @@ object MultilayerPerceptronTweet {
       val layers = new Array[Int](num_layers + 2)
 
       //Initial Features
-      layers(0) = 2
+      layers(0) = num_features
 
       //Output classes
-      layers(num_layers+1) = 3
+      layers(num_layers+1) = output_classes
 
       for(i <- 1 to num_layers)
         layers(i) = r.nextInt(50) + 10
