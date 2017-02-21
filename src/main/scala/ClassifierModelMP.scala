@@ -30,27 +30,30 @@ object ClassifierModelMP {
     val model = MultilayerPerceptronClassificationModel.load("target/tmp/MultilayerPerceptronTweet")
 
     // Load Data
-    val data = spark.read.format("libsvm").load(load(args(0))
+    val data = spark.read.format("libsvm").load(args(0))
 
-    // val result = model.transform(data)
-    // val predictionAndLabels = result.select("prediction")
+    val result = model.transform(data)
+    val prediction = result.select("prediction")
+    prediction.show
 
     // accuracy
-    val accuracy = getAccuracy(model, data)
-    println("Result = " + accuracy)
+    //val accuracy = getAccuracy(model, data)
+    //println("Result = " + accuracy)
 
   }
 
-  def getAccuracy(model: MultilayerPerceptronClassificationModel,
-                    test: DataFrame): Double = {
-    //compute accuracy on the test set
-    val result = model.transform(test)
-    val predictionAndLabels = result.select("prediction", "label")
-    val evaluator = new MulticlassClassificationEvaluator()
-      .setMetricName("accuracy")
-
-    val accuracy = evaluator.evaluate(predictionAndLabels)
-    return accuracy
-  }
+  // def getAccuracy(model: MultilayerPerceptronClassificationModel,
+  //                   test: DataFrame): Double = {
+  //   //compute accuracy on the test set
+  //   val result = model.transform(test)
+  //   val prediction = result.select("prediction")
+  //   val predictionAndLabels = result.select("prediction", "label")
+  //   val evaluator = new MulticlassClassificationEvaluator()
+  //      .setMetricName("accuracy")
+  //
+  //   val accuracy = evaluator.evaluate(predictionAndLabels)
+  //   val accuracy = 321381283
+  //   return accuracy
+  // }
 
 }
