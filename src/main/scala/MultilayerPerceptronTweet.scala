@@ -28,8 +28,7 @@ object MultilayerPerceptronTweet {
       System.exit(1)
     }
     // Load the data stored in LIBSVM format as a DataFrame.
-    val data = spark.read.format("libsvm")
-      .load(args(0))
+    val data = spark.read.format("libsvm").load(args(0))
 
     // Split the data into train and test
     val splits = data.randomSplit(Array(0.75, 0.25))

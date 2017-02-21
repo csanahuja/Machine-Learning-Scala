@@ -20,12 +20,17 @@ object ClassifierModelMP {
       .appName("ClassifierModelMP")
       .getOrCreate()
 
+
+    if (args.size < 1){
+      println("Usage: arg1: input_file")
+      System.exit(1)
+    }
+
     // Load Model
     val model = MultilayerPerceptronClassificationModel.load("target/tmp/MultilayerPerceptronTweet")
 
     // Load Data
-    val data = spark.read.format("libsvm")
-      .load("tweets.txt")
+    val data = spark.read.format("libsvm").load(load(args(0))
 
     // val result = model.transform(data)
     // val predictionAndLabels = result.select("prediction")
