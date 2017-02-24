@@ -1,8 +1,5 @@
-import org.apache.spark.SparkContext
-import org.apache.spark.SparkContext._
-import org.apache.spark.SparkConf
+import org.apache.spark.{SparkConf, SparkContext}
 
-import org.apache.spark._
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.SparkSession
 
@@ -14,18 +11,18 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassificationMode
 // @Annotation
 // TODO: Re-Think how to classify tweets passed by parameter and how to return
 // the result. Modify directly the file (?)
-object MultilayerPerceptronClassifier{
+object MultilayerPerceptronClassifierCustom{
   final val num_models = 10
 
   def main(args: Array[String]) {
     val spark = SparkSession
       .builder
-      .appName("MPC")
+      .appName("MPCC")
       .getOrCreate()
 
 
     if (args.size < 2){
-      println("Usage: arg1: input_file multilayer_perceptron_model")
+      println("Usage -> args: input_file MPmodel_file")
       System.exit(1)
     }
 
@@ -39,7 +36,6 @@ object MultilayerPerceptronClassifier{
     val result = model.transform(data)
     val prediction = result.select("prediction")
     prediction.show
-    return prediction
 
   }
 

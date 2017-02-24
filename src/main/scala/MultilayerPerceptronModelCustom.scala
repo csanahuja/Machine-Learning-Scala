@@ -1,15 +1,11 @@
-import org.apache.spark.SparkContext
-import org.apache.spark.SparkContext._
-import org.apache.spark.SparkConf
+import org.apache.spark.{SparkConf, SparkContext}
 
-import org.apache.spark._
-import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.ml.linalg.Vector
-
+import org.apache.spark.sql.DataFrame
 import scala.util.Random
 
 // Import classes for MLLib
+import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.ml.classification.MultilayerPerceptronClassifier
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 import org.apache.spark.ml.classification.MultilayerPerceptronClassificationModel;
@@ -18,17 +14,17 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassificationMode
 // TODO: rework program to just generate 1 model by the parameters entered
 // as arguments. Make a script to call the program with different parameters.
 // Study the influence of different parameters and see which one are more succes.
-object MultilayerPerceptronModel {
+object MultilayerPerceptronModelCustom {
   final val num_models = 10
 
   def main(args: Array[String]) {
     val spark = SparkSession
       .builder
-      .appName("MPM")
+      .appName("MPMC")
       .getOrCreate()
 
     if (args.size < 1){
-      println("Usage: arg1: input_file")
+      println("Usage -> arguments: input_file <save_model_file> <model parameters>")
       System.exit(1)
     }
     // Load the data stored in LIBSVM format as a DataFrame.
@@ -36,8 +32,7 @@ object MultilayerPerceptronModel {
 
     // Split the data into train and test
     val splits = data.randomSplit(Array(0.75, 0.25))
-    val train = splits(0)
-    val test = splits(1)
+    val (train, test) = (splits(0), splits(1))
 
     var models = new Array[MultilayerPerceptronClassificationModel](num_models)
     var accuracies = new Array[Double](num_models)
@@ -63,7 +58,7 @@ object MultilayerPerceptronModel {
     debugModels(best_model,accuracies)
 
     // Save model
-    models(best_model).write.overwrite().save("target/tmp/MultilayerPerceptronTweet")
+    models(best_model).write.overwrite().save("target/tmp/MPM")
 
     spark.stop()
     }
@@ -110,6 +105,7 @@ object MultilayerPerceptronModel {
       return model
     }
 
+    //Auxiliar Function: returns accuracy of a given model with a data set
     def getAccuracy(model: MultilayerPerceptronClassificationModel,
                       test: DataFrame): Double = {
       //compute accuracy on the test set

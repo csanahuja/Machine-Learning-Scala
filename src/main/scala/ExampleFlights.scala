@@ -1,9 +1,7 @@
-import org.apache.spark.SparkContext
-import org.apache.spark.SparkContext._
-import org.apache.spark.SparkConf
+import org.apache.spark.{SparkConf, SparkContext}
 
-import org.apache.spark._
 import org.apache.spark.rdd.RDD
+
 // Import classes for MLLib
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.linalg.Vectors
@@ -16,7 +14,6 @@ object ExampleFlights {
 	def main(args: Array[String]) {
 		val conf = new SparkConf().setAppName("EF")
 		val sc = new SparkContext(conf)
-
 
 		//Load Data into a RDD, modify route to required
 		val textRDD = sc.textFile("flights.csv")
