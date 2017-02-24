@@ -3,6 +3,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.DataFrame
 import scala.util.Random
+import scopt.OptionParser
 
 // Import classes for MLLib
 import org.apache.spark.ml.linalg.Vector
@@ -17,13 +18,41 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassificationMode
 
 // MultilayerPerceptronModelCustom
 object MPMC {
-  final val num_models = 10
+
+  case class Params(
+        input: String = null,
+        maxDepth: Int = 5,
+        maxBins: Int = 32,
+        minInfoGain: Double = 0.0)
 
   def main(args: Array[String]) {
     val spark = SparkSession
       .builder
       .appName("MPMC")
       .getOrCreate()
+
+    val defaultParams = Params()
+
+    val parser = new OptionParser[Params]("MPMC") {
+      head("MPMC Params.")
+      opt[Int]("maxDepth")
+        .text(s"max depth of the tree, default: ${defaultParams.maxDepth}")
+        .action((x, c) => c.copy(maxDepth = x))
+      opt[Int]("maxBins")
+        .text(s"max number of bins, default: ${defaultParams.maxBins}")
+        .action((x, c) => c.copy(maxBins = x))
+      opt[Double]("minInfoGain")
+        .text(s"min info gain required to create a split, default: ${defaultParams.minInfoGain}")
+        .action((x, c) => c.copy(minInfoGain = x))
+      arg[String]("<input>")
+        .text("input path to labeled examples")
+        .required()
+        .action((x, c) => c.copy(input = x))
+
+    }
+
+
+
 
     if (args.size < 1){
       println("Usage -> arguments: input_file <save_model_file> <model parameters>")
@@ -35,13 +64,6 @@ object MPMC {
     // Split the data into train and test
     val splits = data.randomSplit(Array(0.75, 0.25))
     val (train, test) = (splits(0), splits(1))
-
-    var models = new Array[MultilayerPerceptronClassificationModel](num_models)
-    var accuracies = new Array[Double](num_models)
-
-    // specify layers for the neural network: input layer of size 2
-    // Intermediate layers and output of size 3 (classes)
-    // val layers = Array[Int](2, 200, 200, 3)
 
     // Generate Model
     val numFeatures = data.first().getAs[Vector](1).size
@@ -98,4 +120,7 @@ object MPMC {
       return accuracy
     }
 
+    def printParams(params: Params): Unit = {
+      print(params)
+    }
 }
