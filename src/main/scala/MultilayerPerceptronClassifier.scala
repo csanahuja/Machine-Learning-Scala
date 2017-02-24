@@ -11,49 +11,36 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassifier
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 import org.apache.spark.ml.classification.MultilayerPerceptronClassificationModel;
 
-object ClassifierModelMP {
+// @Annotation
+// TODO: Re-Think how to classify tweets passed by parameter and how to return
+// the result. Modify directly the file (?)
+object MultilayerPerceptronClassifier{
   final val num_models = 10
 
   def main(args: Array[String]) {
     val spark = SparkSession
       .builder
-      .appName("ClassifierModelMP")
+      .appName("MPC")
       .getOrCreate()
 
 
-    if (args.size < 1){
-      println("Usage: arg1: input_file")
+    if (args.size < 2){
+      println("Usage: arg1: input_file multilayer_perceptron_model")
       System.exit(1)
     }
 
-    // Load Model
-    val model = MultilayerPerceptronClassificationModel.load("target/tmp/MultilayerPerceptronTweet")
-
-    // Load Data
+    // Load Data to Classify
     val data = spark.read.format("libsvm").load(args(0))
+
+    // Load Model
+    // Change the route by args(1)
+    val model = MultilayerPerceptronClassificationModel.load("target/tmp/MultilayerPerceptronTweet")
 
     val result = model.transform(data)
     val prediction = result.select("prediction")
     prediction.show
-
-    // accuracy
-    //val accuracy = getAccuracy(model, data)
-    //println("Result = " + accuracy)
+    return prediction
 
   }
-
-  // def getAccuracy(model: MultilayerPerceptronClassificationModel,
-  //                   test: DataFrame): Double = {
-  //   //compute accuracy on the test set
-  //   val result = model.transform(test)
-  //   val prediction = result.select("prediction")
-  //   val predictionAndLabels = result.select("prediction", "label")
-  //   val evaluator = new MulticlassClassificationEvaluator()
-  //      .setMetricName("accuracy")
-  //
-  //   val accuracy = evaluator.evaluate(predictionAndLabels)
-  //   val accuracy = 321381283
-  //   return accuracy
-  // }
 
 }

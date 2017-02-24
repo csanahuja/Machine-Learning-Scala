@@ -11,10 +11,12 @@ import org.apache.spark.mllib.tree.DecisionTree
 import org.apache.spark.mllib.tree.model.DecisionTreeModel
 import org.apache.spark.mllib.util.MLUtils
 
-object DecisionTreeTweet {
+// @Annotation
+// Todo Rework to use Dataframe instead of RDD (soon deprecated)
+object DecisionTreeModel {
 
 	def main(args: Array[String]) {
-		val conf = new SparkConf().setAppName("DecisionTreeTweet")
+		val conf = new SparkConf().setAppName("DTM")
 		val sc = new SparkContext(conf)
 
 		//Load Data into a RDD, modify route to required

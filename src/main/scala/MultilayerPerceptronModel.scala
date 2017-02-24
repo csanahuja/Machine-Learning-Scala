@@ -14,13 +14,17 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassifier
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 import org.apache.spark.ml.classification.MultilayerPerceptronClassificationModel;
 
-object MultilayerPerceptronTweet {
+// @Annotation
+// TODO: rework program to just generate 1 model by the parameters entered
+// as arguments. Make a script to call the program with different parameters.
+// Study the influence of different parameters and see which one are more succes.
+object MultilayerPerceptronModel {
   final val num_models = 10
 
   def main(args: Array[String]) {
     val spark = SparkSession
       .builder
-      .appName("MultilayerPerceptronTweet")
+      .appName("MPM")
       .getOrCreate()
 
     if (args.size < 1){
@@ -47,6 +51,7 @@ object MultilayerPerceptronTweet {
     val numFeatures = vector.size
     val classes = 3
 
+    // TO DO: Change it see @Annotation
     for(i <- 1 to num_models){
       val layers = getRandomLayer(numFeatures,classes)
       models(i-1) = generateModel(train, layers)
