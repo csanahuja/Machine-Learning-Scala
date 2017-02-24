@@ -11,7 +11,9 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassificationMode
 // @Annotation
 // TODO: Re-Think how to classify tweets passed by parameter and how to return
 // the result. Modify directly the file (?)
-object MultilayerPerceptronClassifierCustom{
+
+// MultilayerPerceptronClassifierCustom
+object MPCC{
   final val num_models = 10
 
   def main(args: Array[String]) {

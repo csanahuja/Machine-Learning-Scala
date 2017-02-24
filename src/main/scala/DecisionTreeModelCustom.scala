@@ -12,7 +12,8 @@ import org.apache.spark.mllib.tree.DecisionTree
 import org.apache.spark.mllib.tree.model.DecisionTreeModel
 import org.apache.spark.mllib.util.MLUtils
 
-object DecisionTreeModelCustom {
+// DecisionTreeModelCustom
+object DTMC {
 
 	def main(args: Array[String]) {
 		val conf = new SparkConf().setAppName("DTMC")

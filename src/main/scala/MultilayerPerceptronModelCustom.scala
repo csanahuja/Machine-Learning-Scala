@@ -14,7 +14,9 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassificationMode
 // TODO: rework program to just generate 1 model by the parameters entered
 // as arguments. Make a script to call the program with different parameters.
 // Study the influence of different parameters and see which one are more succes.
-object MultilayerPerceptronModelCustom {
+
+// MultilayerPerceptronModelCustom
+object MPMC {
   final val num_models = 10
 
   def main(args: Array[String]) {
@@ -39,35 +41,29 @@ object MultilayerPerceptronModelCustom {
 
     // specify layers for the neural network: input layer of size 2
     // Intermediate layers and output of size 3 (classes)
-    //val layers = Array[Int](2, 200, 200, 3)
+    // val layers = Array[Int](2, 200, 200, 3)
 
-    // Generate 10 models with different layers
-    val vector = data.first().getAs[Vector](1)
-    val numFeatures = vector.size
+    // Generate Model
+    val numFeatures = data.first().getAs[Vector](1).size
     val classes = 3
+    val layers = getRandomLayer(numFeatures, classes)
 
-    // TO DO: Change it see @Annotation
-    for(i <- 1 to num_models){
-      val layers = getRandomLayer(numFeatures,classes)
-      models(i-1) = generateModel(train, layers)
-      accuracies(i-1) = getAccuracy(models(i-1), test)
-    }
+    // Generate Model
+    val trainer = new MultilayerPerceptronClassifier()
+      .setLayers(layers)
+      .setBlockSize(128)
+      .setSeed(1234L)
+      .setMaxIter(100)
+    val model = trainer.fit(train)
 
-    // Get best model of 10
-    val best_model = getBestModel(accuracies)
-    debugModels(best_model,accuracies)
+    // Get Accuracy
+    val accuracy = getAccuracy(model, test)
+    println("Results = " + accuracy)
 
     // Save model
-    models(best_model).write.overwrite().save("target/tmp/MPM")
+    model.write.overwrite().save("target/tmp/MPM")
 
     spark.stop()
-    }
-
-    def debugModels(best_model : Int, accuracies: Array[Double]){
-      for(i <- 0 to num_models-1)
-        println("Results =" + i + " :" + accuracies(i))
-
-      println("Results best" + best_model)
     }
 
     def getRandomLayer(num_features : Int, output_classes: Int): Array[Int] = {
@@ -89,22 +85,6 @@ object MultilayerPerceptronModelCustom {
       return layers
     }
 
-    def generateModel(train: DataFrame, layers: Array[Int]):
-                MultilayerPerceptronClassificationModel = {
-
-      // create the trainer and set its parameters
-      val trainer = new MultilayerPerceptronClassifier()
-        .setLayers(layers)
-        .setBlockSize(128)
-        .setSeed(1234L)
-        .setMaxIter(100)
-
-      // train the model
-      val model = trainer.fit(train)
-
-      return model
-    }
-
     //Auxiliar Function: returns accuracy of a given model with a data set
     def getAccuracy(model: MultilayerPerceptronClassificationModel,
                       test: DataFrame): Double = {
@@ -116,14 +96,6 @@ object MultilayerPerceptronModelCustom {
 
       val accuracy = evaluator.evaluate(predictionAndLabels)
       return accuracy
-    }
-
-    def getBestModel(accuracies: Array[Double]): Int = {
-      var best = 0
-      for (i <- 1 to num_models-1)
-        if (accuracies(i) > accuracies(best))
-          best = i
-      return best
     }
 
 }
