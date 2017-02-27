@@ -27,22 +27,21 @@ object MPMC {
       .appName("MPMC")
       .getOrCreate()
 
-    if (args.size < 1){
-      println("Usage -> arguments: input_file <save_model_file> <model parameters>")
-      System.exit(1)
+    val arglist = args.toList
+    val options = getOptions(Map(),arglist)
+
+    val input = options.get('input).get
+    println(options.get('input))
+
+    if(options.get('input) == None){
+      val msg = """Usage -> arguments: -input file <optinal parameters>
+                  |Enter --help to see a full list of options""".stripMargin
+      println(msg)
+      sys.exit(1)
     }
 
-    val arglist = args.toList
-
-    val options = getOptions(Map(),arglist)
-    println(options)
-    println(options.get('maxsize))
-    println(options.get('input))
-    sys.exit(0)
-
-
     // Load the data stored in LIBSVM format as a DataFrame.
-    val data = spark.read.format("libsvm").load(args(0))
+    val data = spark.read.format("libsvm").load(input.toString)
 
     // Split the data into train and test
     val splits = data.randomSplit(Array(0.75, 0.25))
