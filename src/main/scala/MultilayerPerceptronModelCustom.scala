@@ -3,7 +3,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.DataFrame
 import scala.util.Random
-import scopt.OptionParser
+
 
 // Import classes for MLLib
 import org.apache.spark.ml.linalg.Vector
@@ -19,11 +19,7 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassificationMode
 // MultilayerPerceptronModelCustom
 object MPMC {
 
-  case class Params(
-        input: String = null,
-        maxDepth: Int = 5,
-        maxBins: Int = 32,
-        minInfoGain: Double = 0.0)
+  type OptionMap = Map[Symbol, Any]
 
   def main(args: Array[String]) {
     val spark = SparkSession
@@ -31,33 +27,20 @@ object MPMC {
       .appName("MPMC")
       .getOrCreate()
 
-    val defaultParams = Params()
-
-    val parser = new OptionParser[Params]("MPMC") {
-      head("MPMC Params.")
-      opt[Int]("maxDepth")
-        .text(s"max depth of the tree, default: ${defaultParams.maxDepth}")
-        .action((x, c) => c.copy(maxDepth = x))
-      opt[Int]("maxBins")
-        .text(s"max number of bins, default: ${defaultParams.maxBins}")
-        .action((x, c) => c.copy(maxBins = x))
-      opt[Double]("minInfoGain")
-        .text(s"min info gain required to create a split, default: ${defaultParams.minInfoGain}")
-        .action((x, c) => c.copy(minInfoGain = x))
-      arg[String]("<input>")
-        .text("input path to labeled examples")
-        .required()
-        .action((x, c) => c.copy(input = x))
-
-    }
-
-
-
-
     if (args.size < 1){
       println("Usage -> arguments: input_file <save_model_file> <model parameters>")
       System.exit(1)
     }
+
+    val arglist = args.toList
+
+    val options = getOptions(Map(),arglist)
+    println(options)
+    println(options.get('maxsize))
+    println(options.get('input))
+    sys.exit(0)
+
+
     // Load the data stored in LIBSVM format as a DataFrame.
     val data = spark.read.format("libsvm").load(args(0))
 
@@ -86,6 +69,32 @@ object MPMC {
     model.write.overwrite().save("target/tmp/MPM")
 
     spark.stop()
+    }
+
+    def getOptions(map : OptionMap, list: List[String]) : OptionMap = {
+      def isSwitch(s : String) = (s(0) == '-')
+      list match {
+        case Nil => map
+        case "-input"  :: value :: tail => getOptions(map ++ Map('input -> value.toString), tail)
+        case "-output" :: value :: tail => getOptions(map ++ Map('block -> value.toInt), tail)
+        case "-max"    :: value :: tail => getOptions(map ++ Map('maxsize -> value.toInt), tail)
+        case "-seed"   :: value :: tail => getOptions(map ++ Map('seed -> value.toLong), tail)
+        case "-block"  :: value :: tail => getOptions(map ++ Map('block -> value.toInt), tail)
+        case "-layers" :: value :: tail => getOptions(map ++ Map('layers -> value.split(",").toList.map(_.toString.toInt)), tail)
+        case option :: tail => println("Unknown option " + option)
+                               sys.exit(1)
+      }
+      // list match {
+      //   case Nil => map
+      //   case "--max-size" :: value :: tail =>
+      //                          getOptions(map ++ Map('maxsize -> value.toInt), tail)
+      //   case "--min-size" :: value :: tail =>
+      //                          getOptions(map ++ Map('minsize -> value.toInt), tail)
+      //
+      //   case option :: tail => println("Unknown option "+option)
+      //                          exit(1)
+      // }
+
     }
 
     def getRandomLayer(num_features : Int, output_classes: Int): Array[Int] = {
@@ -118,9 +127,5 @@ object MPMC {
 
       val accuracy = evaluator.evaluate(predictionAndLabels)
       return accuracy
-    }
-
-    def printParams(params: Params): Unit = {
-      print(params)
     }
 }
