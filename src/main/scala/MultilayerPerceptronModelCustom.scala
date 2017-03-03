@@ -20,9 +20,9 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassificationMode
 object MPMC {
 
   class Params(var input : String, var output : String, var maxIters : Int,
-               var block: Int, var seed: Long, var layers : List[Int]) {
+               var block: Int, var seed: Long, var layers : Array[Int]) {
     def this() {
-        this("", "", 100, 128, 1234L, Nil);
+        this("", "", 100, 128, 1234L, Array[Int]());
     }
     override def toString : String =
       "Params: \n" +
@@ -41,18 +41,10 @@ object MPMC {
       .appName("MPMC")
       .getOrCreate()
 
+    //Parse and Save Params
     val arglist = args.toList
     var params = new Params()
-
     getOptions(arglist, params)
-
-    printf(params.toString)
-    val input = params.input
-    val layers2 = params.layers
-    val maxIters = params.maxIters
-    println("Input:" + input + " " + input.getClass)
-    println("layers:" + layers2 + " " + layers2.getClass)
-    println("maxIter:" + maxIters + " " + maxIters.getClass)
 
     if(input == ""){
       val msg = """Usage -> arguments: -input file <optinal parameters>
@@ -68,10 +60,12 @@ object MPMC {
     val splits = data.randomSplit(Array(0.75, 0.25))
     val (train, test) = (splits(0), splits(1))
 
-    // Generate Model
+    // Parse params
     val numFeatures = data.first().getAs[Vector](1).size
     val classes = 3
-    val layers = getRandomLayer(numFeatures, classes)
+    parseParams(params)
+
+    //val layers = getRandomLayer(numFeatures, classes)
 
     // Generate Model
     val trainer = new MultilayerPerceptronClassifier()
@@ -102,16 +96,20 @@ object MPMC {
         case "-max"    :: value :: tail => params.maxIters = value.toInt
                                            getOptions(tail, params)
         case "-block"  :: value :: tail => params.block = value.toInt
-                                          getOptions(tail, params)
+                                           getOptions(tail, params)
         case "-seed"   :: value :: tail => params.seed = value.toLong
                                            getOptions(tail, params)
-        case "-layers" :: value :: tail => params.layers = value.split(",").toList.map(_.toString.toInt)
+        case "-layers" :: value :: tail => params.layers = value.split(",").toArray.map(_.toString.toInt)
                                            getOptions(tail, params)
 
         case option :: tail => println("Unknown option " + option)
                                sys.exit(1)
       }
 
+    }
+
+    def parseParams(params: Params){
+      //On Monday It will be done
     }
 
     def getRandomLayer(num_features : Int, output_classes: Int): Array[Int] = {
