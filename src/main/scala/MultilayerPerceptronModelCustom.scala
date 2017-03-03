@@ -19,7 +19,21 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassificationMode
 // MultilayerPerceptronModelCustom
 object MPMC {
 
-  type OptionMap = Map[Symbol, Any]
+  class Params(var input : String, var output : String, var maxIters : Int,
+               var block: Int, var seed: Long, var layers : List[Int]) {
+    def this() {
+        this("", "", 100, 128, 1234L, Nil);
+    }
+    override def toString : String =
+      "Params: \n" +
+      " - Input =    " + input + "\n" +
+      " - Output =   " + output + "\n" +
+      " - MaxIters = " + maxIters + "\n" +
+      " - Block =    " + block + "\n" +
+      " - Seed =     " + seed + "\n" +
+      " - Layers =   " + layers + "\n"
+
+  }
 
   def main(args: Array[String]) {
     val spark = SparkSession
@@ -28,12 +42,19 @@ object MPMC {
       .getOrCreate()
 
     val arglist = args.toList
-    val options = getOptions(Map(),arglist)
+    var params = new Params()
 
-    val input = options.get('input).get
-    println(options.get('input))
+    getOptions(arglist, params)
 
-    if(options.get('input) == None){
+    printf(params.toString)
+    val input = params.input
+    val layers2 = params.layers
+    val maxIters = params.maxIters
+    println("Input:" + input + " " + input.getClass)
+    println("layers:" + layers2 + " " + layers2.getClass)
+    println("maxIter:" + maxIters + " " + maxIters.getClass)
+
+    if(input == ""){
       val msg = """Usage -> arguments: -input file <optinal parameters>
                   |Enter --help to see a full list of options""".stripMargin
       println(msg)
@@ -70,29 +91,26 @@ object MPMC {
     spark.stop()
     }
 
-    def getOptions(map : OptionMap, list: List[String]) : OptionMap = {
+    def getOptions(list: List[String], params: Params){
       def isSwitch(s : String) = (s(0) == '-')
       list match {
-        case Nil => map
-        case "-input"  :: value :: tail => getOptions(map ++ Map('input -> value.toString), tail)
-        case "-output" :: value :: tail => getOptions(map ++ Map('block -> value.toInt), tail)
-        case "-max"    :: value :: tail => getOptions(map ++ Map('maxsize -> value.toInt), tail)
-        case "-seed"   :: value :: tail => getOptions(map ++ Map('seed -> value.toLong), tail)
-        case "-block"  :: value :: tail => getOptions(map ++ Map('block -> value.toInt), tail)
-        case "-layers" :: value :: tail => getOptions(map ++ Map('layers -> value.split(",").toList.map(_.toString.toInt)), tail)
+        case Nil =>
+        case "-input"  :: value :: tail => params.input = value.toString
+                                           getOptions(tail, params)
+        case "-output" :: value :: tail => params.output = value.toString
+                                           getOptions(tail, params)
+        case "-max"    :: value :: tail => params.maxIters = value.toInt
+                                           getOptions(tail, params)
+        case "-block"  :: value :: tail => params.block = value.toInt
+                                          getOptions(tail, params)
+        case "-seed"   :: value :: tail => params.seed = value.toLong
+                                           getOptions(tail, params)
+        case "-layers" :: value :: tail => params.layers = value.split(",").toList.map(_.toString.toInt)
+                                           getOptions(tail, params)
+
         case option :: tail => println("Unknown option " + option)
                                sys.exit(1)
       }
-      // list match {
-      //   case Nil => map
-      //   case "--max-size" :: value :: tail =>
-      //                          getOptions(map ++ Map('maxsize -> value.toInt), tail)
-      //   case "--min-size" :: value :: tail =>
-      //                          getOptions(map ++ Map('minsize -> value.toInt), tail)
-      //
-      //   case option :: tail => println("Unknown option "+option)
-      //                          exit(1)
-      // }
 
     }
 
