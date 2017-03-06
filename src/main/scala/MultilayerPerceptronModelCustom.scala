@@ -38,15 +38,15 @@ object MPMC {
   def main(args: Array[String]) {
     val spark = SparkSession
       .builder
-      .appName("MPMC")
+      .appName("Multilayer Perceptron Model")
       .getOrCreate()
 
     //Parse and Save Params
     val arglist = args.toList
-    var params = new Params()
+    val params = new Params()
     getOptions(arglist, params)
 
-    if(input == ""){
+    if(params.input == ""){
       val msg = """Usage -> arguments: -input file <optinal parameters>
                   |Enter --help to see a full list of options""".stripMargin
       println(msg)
@@ -54,7 +54,7 @@ object MPMC {
     }
 
     // Load the data stored in LIBSVM format as a DataFrame.
-    val data = spark.read.format("libsvm").load(input.toString)
+    val data = spark.read.format("libsvm").load(params.input)
 
     // Split the data into train and test
     val splits = data.randomSplit(Array(0.75, 0.25))
@@ -63,21 +63,18 @@ object MPMC {
     // Parse params
     val numFeatures = data.first().getAs[Vector](1).size
     val classes = 3
-    parseParams(params)
-
-    //val layers = getRandomLayer(numFeatures, classes)
+    parseParams(params, numFeatures, classes)
 
     // Generate Model
     val trainer = new MultilayerPerceptronClassifier()
-      .setLayers(layers)
-      .setBlockSize(128)
-      .setSeed(1234L)
-      .setMaxIter(100)
+      .setLayers(params.layers)
+      .setBlockSize(params.block)
+      .setSeed(params.seed)
+      .setMaxIter(params.maxIters)
     val model = trainer.fit(train)
 
     // Get Accuracy
     val accuracy = getAccuracy(model, test)
-    println("Results = " + accuracy)
 
     // Save model
     model.write.overwrite().save("target/tmp/MPM")
@@ -108,8 +105,16 @@ object MPMC {
 
     }
 
-    def parseParams(params: Params){
-      //On Monday It will be done
+    def parseParams(params: Params, num_features : Int, output_classes: Int){
+      //layers
+      if (params.layers.size == 0)
+        params.layers = getRandomLayer(num_features, output_classes)
+      else
+        params.layers = Array(num_features) ++ params.layers ++ Array(output_classes)
+        printf(params.layers.mkString(" "))
+
+      //seed
+      params.seed = System.currentTimeMillis()
     }
 
     def getRandomLayer(num_features : Int, output_classes: Int): Array[Int] = {
