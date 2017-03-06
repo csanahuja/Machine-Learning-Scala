@@ -77,8 +77,11 @@ object MPMC {
     val accuracy = getAccuracy(model, test)
 
     // Save model
-    model.write.overwrite().save("target/tmp/MPM")
-
+    if(params.input == "")
+      model.write.overwrite().save("target/tmp/MPM")
+    else
+      model.write.overwrite().save(params.output)
+      
     spark.stop()
     }
 
