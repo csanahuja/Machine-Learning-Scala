@@ -47,8 +47,8 @@ object MPMC {
     getOptions(arglist, params)
 
     if(params.input == ""){
-      val msg = """Usage -> arguments: -input file <optinal parameters>
-                  |Enter --help to see a full list of options""".stripMargin
+      val msg = """Usage -> arguments: -arg value
+                  argument: -input required""".stripMargin
       println(msg)
       sys.exit(1)
     }
@@ -102,7 +102,6 @@ object MPMC {
                                            getOptions(tail, params)
         case "-layers" :: value :: tail => params.layers = value.split(",").toArray.map(_.toString.toInt)
                                            getOptions(tail, params)
-
         case option :: tail => println("Unknown option " + option)
                                sys.exit(1)
       }
