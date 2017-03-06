@@ -75,13 +75,14 @@ object MPMC {
 
     // Get Accuracy
     val accuracy = getAccuracy(model, test)
+    printf("Accuracy: " + accuracy + "\n")
 
     // Save model
-    if(params.input == "")
+    if(params.output == "")
       model.write.overwrite().save("target/tmp/MPM")
     else
       model.write.overwrite().save(params.output)
-      
+
     spark.stop()
     }
 
@@ -114,7 +115,6 @@ object MPMC {
         params.layers = getRandomLayer(num_features, output_classes)
       else
         params.layers = Array(num_features) ++ params.layers ++ Array(output_classes)
-        printf(params.layers.mkString(" "))
 
       //seed
       params.seed = System.currentTimeMillis()
