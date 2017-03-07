@@ -59,13 +59,20 @@ object DTMC {
 		val featureIndexer = new VectorIndexer()
 		  .setInputCol("features")
 		  .setOutputCol("indexedFeatures")
-		  .setMaxCategories(4) // features with > 4 distinct values are treated as continuous.
+		  .setMaxCategories(350) // features with > 4 distinct values are treated as continuous.
 		  .fit(data)
 
 		// Train a DecisionTree model.
 		val dt = new DecisionTreeClassifier()
 		  .setLabelCol("indexedLabel")
 		  .setFeaturesCol("indexedFeatures")
+			.setFeaturesCol("indexedFeatures")
+			.setMaxDepth(params.maxDepth)
+			.setMaxBins(params.maxBins)
+			// .setMinInstancesPerNode(params.minInstancesPerNode)
+			// .setMinInfoGain(params.minInfoGain)
+			// .setCacheNodeIds(params.cacheNodeIds)
+			// .setCheckpointInterval(params.checkpointInterval)
 
 		// Convert indexed labels back to original labels.
 		val labelConverter = new IndexToString()
