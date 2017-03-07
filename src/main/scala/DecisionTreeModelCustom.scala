@@ -1,16 +1,12 @@
 import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.DataFrame
 
-import org.apache.spark.rdd.RDD
-import org.apache.spark.rdd.MapPartitionsRDD
-import org.apache.commons.io.FileUtils
-import java.io.File
-
-// Import classes for MLLib
-import org.apache.spark.mllib.regression.LabeledPoint
-import org.apache.spark.mllib.linalg.Vector
-import org.apache.spark.mllib.tree.DecisionTree
-import org.apache.spark.mllib.tree.model.DecisionTreeModel
-import org.apache.spark.mllib.util.MLUtils
+// Import classes for ML
+import org.apache.spark.ml.{Pipeline,PipelineModel}
+import org.apache.spark.ml.classification.DecisionTreeClassifier
+import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
+import org.apache.spark.ml.feature.{IndexToString, StringIndexer, VectorIndexer}
 
 // DecisionTreeModelCustom
 object DTMC {
@@ -29,8 +25,10 @@ object DTMC {
 		  }
 
 	def main(args: Array[String]) {
-		val conf = new SparkConf().setAppName("Decision Tree Model")
-		val sc = new SparkContext(conf)
+		val sc = SparkSession
+      .builder
+      .appName("Decision Tree Model")
+      .getOrCreate()
 
 		//Parse and Save Params
 		val arglist = args.toList
@@ -45,30 +43,52 @@ object DTMC {
 		}
 
 		// Load the data stored in LIBSVM format as a DataFrame.
-	  val data = MLUtils.loadLibSVMFile(sc, params.input)
-		//val data = spark.read.format("libsvm").load(args(0))
+    val data = sc.read.format("libsvm").load(params.input)
 
 		// Split the data into train and test
     val splits = data.randomSplit(Array(0.75, 0.25))
-		val (train, test) = (splits(0), splits(1))
+    val (train, test) = (splits(0), splits(1))
 
-		// VALUES OF MODEL
-		val numClasses = 3
-		val categoricalFeaturesInfo = Map[Int, Int]()
-		val impurity = "gini"
-		val maxDepth = params.maxDepth
-		val maxBins = params.maxBins
+		// Index labels, adding metadata to the label column.
+		// Fit on whole dataset to include all labels in index.
+		val labelIndexer = new StringIndexer()
+		  .setInputCol("label")
+		  .setOutputCol("indexedLabel")
+		  .fit(data)
+		// Automatically identify categorical features, and index them.
+		val featureIndexer = new VectorIndexer()
+		  .setInputCol("features")
+		  .setOutputCol("indexedFeatures")
+		  .setMaxCategories(4) // features with > 4 distinct values are treated as continuous.
+		  .fit(data)
 
-		// Call DecisionTree trainClassifier with the train data , which returns the model
-		val model = DecisionTree.trainClassifier(train, numClasses,
-			categoricalFeaturesInfo, impurity, maxDepth, maxBins)
+		// Train a DecisionTree model.
+		val dt = new DecisionTreeClassifier()
+		  .setLabelCol("indexedLabel")
+		  .setFeaturesCol("indexedFeatures")
+
+		// Convert indexed labels back to original labels.
+		val labelConverter = new IndexToString()
+		  .setInputCol("prediction")
+		  .setOutputCol("predictedLabel")
+		  .setLabels(labelIndexer.labels)
+
+		// Chain indexers and tree in a Pipeline.
+		val pipeline = new Pipeline()
+		  .setStages(Array(labelIndexer, featureIndexer, dt, labelConverter))
+
+		// Train model. This also runs the indexers.
+		val model = pipeline.fit(train)
+
+    // Get Accuracy
 		val accuracy = getAccuracy(model, test)
 		println("Acurracy: " + accuracy)
 
 		// Save model
-		// we delete the file where we are going to save to avoid conflicts
-		FileUtils.deleteQuietly(new File("target/tmp/DTM"))
-		model.save(sc,path="target/tmp/DTM")
+    if(params.output == "")
+      model.write.overwrite().save("target/tmp/DTM")
+    else
+      model.write.overwrite().save(params.output)
 
 		sc.stop()
   	}
@@ -91,17 +111,17 @@ object DTMC {
 
     }
 
-    // Auxiliar Function: returns accuracy of a given model with a data set
-		def getAccuracy(model: DecisionTreeModel,
-											test: RDD[LabeledPoint]): Double = {
-			//compute accuracy on the test set
-			val labelAndPreds = test.map { point =>
-						val prediction = model.predict(point.features)
-						(point.label, prediction)
-					}
-			val accuracy = labelAndPreds.filter(r => r._1 == r._2).count().toDouble / test.count()
-			return accuracy
-		}
+		//Auxiliar Function: returns accuracy of a given model with a data set
+    def getAccuracy(model: PipelineModel,
+                      test: DataFrame): Double = {
+      //compute accuracy on the test set
+      val result = model.transform(test)
+      val predictionAndLabels = result.select("prediction", "label")
+      val evaluator = new MulticlassClassificationEvaluator()
+        .setMetricName("accuracy")
 
+      val accuracy = evaluator.evaluate(predictionAndLabels)
+      return accuracy
+    }
 
 }

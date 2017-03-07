@@ -1,11 +1,9 @@
 import org.apache.spark.{SparkConf, SparkContext}
-
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.DataFrame
 import scala.util.Random
 
-
-// Import classes for MLLib
+// Import classes for ML
 import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.ml.classification.MultilayerPerceptronClassifier
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
@@ -36,7 +34,7 @@ object MPMC {
   }
 
   def main(args: Array[String]) {
-    val spark = SparkSession
+    val sc = SparkSession
       .builder
       .appName("Multilayer Perceptron Model")
       .getOrCreate()
@@ -54,7 +52,7 @@ object MPMC {
     }
 
     // Load the data stored in LIBSVM format as a DataFrame.
-    val data = spark.read.format("libsvm").load(params.input)
+    val data = sc.read.format("libsvm").load(params.input)
 
     // Split the data into train and test
     val splits = data.randomSplit(Array(0.75, 0.25))
@@ -83,7 +81,7 @@ object MPMC {
     else
       model.write.overwrite().save(params.output)
 
-    spark.stop()
+    sc.stop()
     }
 
     def getOptions(list: List[String], params: Params){
