@@ -2,6 +2,9 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.SparkSession
+import java.io._
+import scala.io._
+import scala.util.matching.Regex
 
 // Import classes for MLLib
 import org.apache.spark.ml.classification.MultilayerPerceptronClassifier
@@ -19,11 +22,11 @@ object MPCC{
   def main(args: Array[String]) {
     val spark = SparkSession
       .builder
-      .appName("MPCC")
+      .appName("Multilayer Perceptron Classifier")
       .getOrCreate()
 
 
-    if (args.size < 2){
+    if (args.size < 1){
       println("Usage -> args: input_file MPmodel_file")
       System.exit(1)
     }
@@ -33,12 +36,21 @@ object MPCC{
 
     // Load Model
     // Change the route by args(1)
-    val model = MultilayerPerceptronClassificationModel.load("target/tmp/MultilayerPerceptronTweet")
+    val model = MultilayerPerceptronClassificationModel.load("target/tmp/MPM")
 
     val result = model.transform(data)
-    val prediction = result.select("prediction")
-    prediction.show
+    val prediction_column = result.select("prediction")
+    val prediction_rows = prediction_column.collect.map(_.getDouble(0).toInt)
 
+
+    // Change the route by args(2)
+    printToFile(new File("output.txt")) { row =>
+      prediction_rows.foreach(row.println)
+    }
   }
 
+  def printToFile(f: File)(op: PrintWriter => Unit) {
+    val p = new PrintWriter(f)
+    try { op(p) } finally { p.close() }
+  }
 }
