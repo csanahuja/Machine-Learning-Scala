@@ -36,15 +36,13 @@ object MPCC{
 
     // Load Model
     // Change the route by args(1)
-    val model = MultilayerPerceptronClassificationModel.load("target/tmp/MPM")
+    val model = MultilayerPerceptronClassificationModel.load(args(2))
 
     val result = model.transform(data)
     val prediction_column = result.select("prediction")
     val prediction_rows = prediction_column.collect.map(_.getDouble(0).toInt)
 
-
-    // Change the route by args(2)
-    printToFile(new File("output.txt")) { row =>
+    printToFile(new File(args(1))) { row =>
       prediction_rows.foreach(row.println)
     }
   }

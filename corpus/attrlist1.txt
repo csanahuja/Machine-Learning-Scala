@@ -1,0 +1,5 @@
+sentiment : count
+emoticont : count
+numurls : count
+nummedia : count
+numhashs : count
