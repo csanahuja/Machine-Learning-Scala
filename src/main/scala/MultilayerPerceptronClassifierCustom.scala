@@ -16,35 +16,26 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassificationMode
 // the result. Modify directly the file (?)
 
 // MultilayerPerceptronClassifierCustom
-object MPCC{
-  final val num_models = 10
+class MPCC(ss: SparkSession, input: String, indexes: String, model: String){
 
-  def main(args: Array[String]) {
-    val spark = SparkSession
-      .builder
-      .appName("Multilayer Perceptron Classifier")
-      .getOrCreate()
-
-
-    if (args.size < 1){
-      println("Usage -> args: input_file MPmodel_file")
-      System.exit(1)
-    }
-
+  def classify(pairs: List[(String,String)]): Int = {
     // Load Data to Classify
-    val data = spark.read.format("libsvm").load(args(0))
+    val data = ss.read.format("libsvm").load(input)
 
+    // Load indexes
+    val tweets_ids = ss.read.option("header","true").csv(indexes)
+    print(indexes)
     // Load Model
-    // Change the route by args(1)
-    val model = MultilayerPerceptronClassificationModel.load(args(2))
+    val mp_model = MultilayerPerceptronClassificationModel.load(model)
 
-    val result = model.transform(data)
+    val result = mp_model.transform(data)
     val prediction_column = result.select("prediction")
     val prediction_rows = prediction_column.collect.map(_.getDouble(0).toInt)
 
-    printToFile(new File(args(1))) { row =>
-      prediction_rows.foreach(row.println)
-    }
+    // printToFile(new File("prueba.txt")){ row =>
+    //   prediction_rows.foreach(row.println)
+    // }
+    return 0
   }
 
   def printToFile(f: File)(op: PrintWriter => Unit) {
