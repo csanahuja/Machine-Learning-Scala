@@ -15,31 +15,59 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassificationMode
 // the result. Modify directly the file (?)
 
 // MultilayerPerceptronClassifierCustom
-class MPCC(ss: SparkSession, input: String, indexes: String, model: String){
+class MPCC(ss: SparkSession, indexes: String,
+                             input: String = "",
+                             model: String = "",
+                             saved: String = ""){
 
-  def classify(pairs: List[TweetPair]): List[Int] = {
-    // Load Data to Classify
-    val data = ss.read.format("libsvm").load(input)
-
+  def classify(pairs: List[TweetPair], classify: Boolean = true,
+                                       save: Boolean = false
+                                       ): List[Int] = {
     // Load indexes
     val text = ss.read.textFile(indexes)
     val pair_indexes = text.collect().map(parseTweetPair).toList
 
-    // Load Model
-    val mp_model = MultilayerPerceptronClassificationModel.load(model)
+    var predictions = Array[Int]()
 
-    val result = mp_model.transform(data)
-    val prediction_column = result.select("prediction")
-    val prediction_rows = prediction_column.collect.map(_.getDouble(0).toInt)
+    // If classify flag -> use the model to classify the input file
+    if (classify){
+      // Classifying
+      if(input != "" && model != ""){
+        // Load Data to Classify
+        val data = ss.read.format("libsvm").load(input)
+        // Load Model
+        val mp_model = MultilayerPerceptronClassificationModel.load(model)
 
-    println(prediction_rows.mkString(" "))
-    println(pair_indexes.getClass)
-    return getValues(pairs, pair_indexes, prediction_rows)
-    return Nil
+        val result = mp_model.transform(data)
+        val prediction_column = result.select("prediction")
+        predictions = prediction_column.collect.map(_.getDouble(0).toInt)
+      }
+      // Missing Arguments to classify (input_file || model_file)
+      else
+        return Nil
+    // If not classify we read classififications from saved file
+    } else {
+      // Obtain classifications
+      if (saved != ""){
+        val text_predictions = ss.read.textFile(saved)
+        predictions = text_predictions.collect().map(_.toInt)
+      // Mising Arguments to obtain saved results (save_file)
+      } else
+        return Nil
+    }
 
-    // printToFile(new File("prueba.txt")){ row =>
-    //   prediction_rows.foreach(row.println)
-    // }
+    // If save flag we override saved file with results
+    if (save){
+      if (saved != ""){
+        printToFile(new File(saved)){ row =>
+           predictions.foreach(row.println)
+        }
+      }
+    }
+
+    // Here we get classification to only the desired pairs
+    return getValues(pairs, pair_indexes, predictions)
+
   }
 
   def getValues(pairs: List[TweetPair], indexes: List[TweetPair], classifications: Array[Int]): List[Int] = {
