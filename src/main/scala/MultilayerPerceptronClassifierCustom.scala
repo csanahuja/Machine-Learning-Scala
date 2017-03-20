@@ -1,10 +1,9 @@
-import org.apache.spark.{SparkConf, SparkContext}
-
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.SparkSession
 import java.io._
 import scala.io._
 import scala.util.matching.Regex
+import scala.collection.mutable.ListBuffer
 
 // Import classes for MLLib
 import org.apache.spark.ml.classification.MultilayerPerceptronClassifier
@@ -18,13 +17,14 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassificationMode
 // MultilayerPerceptronClassifierCustom
 class MPCC(ss: SparkSession, input: String, indexes: String, model: String){
 
-  def classify(pairs: List[(String,String)]): Int = {
+  def classify(pairs: List[TweetPair]): List[Int] = {
     // Load Data to Classify
     val data = ss.read.format("libsvm").load(input)
 
     // Load indexes
-    val tweets_ids = ss.read.option("header","true").csv(indexes)
-    print(indexes)
+    val text = ss.read.textFile(indexes)
+    val pair_indexes = text.collect().map(parseTweetPair).toList
+
     // Load Model
     val mp_model = MultilayerPerceptronClassificationModel.load(model)
 
@@ -32,14 +32,49 @@ class MPCC(ss: SparkSession, input: String, indexes: String, model: String){
     val prediction_column = result.select("prediction")
     val prediction_rows = prediction_column.collect.map(_.getDouble(0).toInt)
 
+    println(prediction_rows.mkString(" "))
+    println(pair_indexes.getClass)
+    return getValues(pairs, pair_indexes, prediction_rows)
+    return Nil
+
     // printToFile(new File("prueba.txt")){ row =>
     //   prediction_rows.foreach(row.println)
     // }
-    return 0
+  }
+
+  def getValues(pairs: List[TweetPair], indexes: List[TweetPair], classifications: Array[Int]): List[Int] = {
+    var index = - 1
+    var lb = new ListBuffer[Int]
+    for(pair <- pairs){
+      index = getIndexes(pair,indexes)
+      if (index != -1)
+        lb += classifications(index)
+      else
+        lb += 0
+    }
+    return lb.toList
+  }
+
+  def getIndexes(pair: TweetPair, indexes: List[TweetPair]): Int = {
+    var i = 0
+    for(index <- indexes){
+      if (index.equals(pair))
+        return i
+      i += 1
+    }
+    return -1
   }
 
   def printToFile(f: File)(op: PrintWriter => Unit) {
     val p = new PrintWriter(f)
     try { op(p) } finally { p.close() }
   }
+
+  case class TweetPair(id1: String, id2: String)
+
+  def parseTweetPair(str: String): TweetPair = {
+    val line = str.split(" ")
+    TweetPair(line(0), line(1))
+  }
+
 }

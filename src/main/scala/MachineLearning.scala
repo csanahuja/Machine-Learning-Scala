@@ -1,7 +1,6 @@
-import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.DataFrame
-
+import scala.collection.mutable.ListBuffer
 
 object MachineLearning{
   def main(args: Array[String]) {
@@ -12,8 +11,25 @@ object MachineLearning{
 
     //Execute methods
     val classifier = new MPCC(ss, args(0), args(1), args(2))
-    classifier.classify(Nil)
 
+    var lb = new ListBuffer[classifier.TweetPair]
+    val tp1 = classifier.TweetPair("841272947461509120","841288423684075520")
+    val tp2 = classifier.TweetPair("841272947461509120","841288423684075524")
+    val tp3 = classifier.TweetPair("841272947461509120","841288423684075525")
+    val tp4 = classifier.TweetPair("841272947461509120","841288423684075521")
+    val tp5 = classifier.TweetPair("841272947461509120","841288423684075522")
+    val tp6 = classifier.TweetPair("841272947461509120","841288423684075520")
+    lb += tp1
+    lb += tp2
+    lb += tp3
+    lb += tp4
+    lb += tp5 
+    lb += tp6
+    val listPairs = lb.toList
+
+    val list = classifier.classify(listPairs)
+    println("List " + list.mkString(" "))
     ss.stop()
   }
+  case class TweetPair(id1: String, id2: String)
 }
