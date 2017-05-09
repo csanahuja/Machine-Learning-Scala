@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Artificial Intelligence Research Group
 University of Lleida
@@ -39,12 +40,12 @@ class Vibe :
     self.positive_words = []
     for line in open( filename1 ) :
         word, weight = line.split()
-        self.positive_words.append( word )
+        self.positive_words.append(word.decode('utf-8'))
 
     self.negative_words = []
     for line in open( filename2 ) :
         word, weight = line.split()
-        self.negative_words.append( word )
+        self.negative_words.append(word.decode('utf-8'))
 
     self.afinn = {}
     for line in open( afinn_filename ) :
@@ -73,11 +74,11 @@ class Output():
     Output in the specified format
     '''
 
-    def __init__(self, args):
+    def __init__(self, output_format):
         '''
         format: output format
         '''
-        self.format = args.output_format
+        self.format = output_format
 
     def vibeAnalysis( self, a, language ) :
         # Emoticons normalization
@@ -147,18 +148,18 @@ class Output():
     def get_weight(self, arg, args, scale = True):
         '''Gets the weight of argument arg depending on the source args.weight_source'''
         weight_source = args.weight_source
-        input_source = args.input_source
-        if input_source in ['twitter'] and weight_source in ['followers_count']:
+        input_source = args.json_file
+        if weight_source in ['followers_count']:
             w = arg['user'][weight_source]
         else:
-            if weight_source == 'favret_count' and input_source in ['twitter']:
+            if weight_source == 'favret_count':
                 w = arg['favorite_count'] + arg['retweet_count']
-            elif weight_source == 'fo1fa40re20' and input_source in ['twitter']:
+            elif weight_source == 'fo1fa40re20':
                 # https://www.deepadvantage.com/blog/retweets-beget-retweets/
                 # http://dl.acm.org/citation.cfm?id=2700060
                 w = arg['user']['followers_count'] + arg['favorite_count'] * 40 + arg['retweet_count'] * 20
             elif weight_source in arg:
-                if input_source in ['twitter']:
+                if input_source:
                     w = arg[weight_source]
                 else:
                     w = int(arg[weight_source])

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 
   Getting feature vectors from an XML file using
@@ -149,11 +150,15 @@ class FeatureVectorExtractor:
            self.writeFeatureVectorsPair( rel, telid, argt, helid, argh )
 
 
+class ParserVector():
 
-if ( __name__ == "__main__" ):
-    FeatureSetFile  = sys.argv[1]
-    XMLdataset = sys.argv[2]
-    computecosine = bool(int(sys.argv[3]))
-    FeatureVectorCreator = FeatureVectorExtractor( FeatureSetFile, computecosine )
-    FeatureVectorCreator.writeFeatureHeaderLine()
-    FeatureVectorCreator.GetFeatureVectors( XMLdataset )
+    def __init__(self, args):
+        self.args = args
+
+    def xml2Vector(self):
+        FeatureSetFile  = self.args.dictionary
+        XMLdataset = self.args.xml_file
+        computecosine = self.args.compute_cosine
+        FeatureVectorCreator = FeatureVectorExtractor( FeatureSetFile, computecosine )
+        FeatureVectorCreator.writeFeatureHeaderLine()
+        FeatureVectorCreator.GetFeatureVectors( XMLdataset )
