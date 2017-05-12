@@ -158,7 +158,7 @@ class ParserVector():
     def xml2Vector(self):
         FeatureSetFile  = self.args.dictionary
         XMLdataset = self.args.xml_file
-        computecosine = self.args.compute_cosine
+        computecosine = bool(int(self.args.compute_cosine))
         FeatureVectorCreator = FeatureVectorExtractor( FeatureSetFile, computecosine )
         FeatureVectorCreator.writeFeatureHeaderLine()
         FeatureVectorCreator.GetFeatureVectors( XMLdataset )
