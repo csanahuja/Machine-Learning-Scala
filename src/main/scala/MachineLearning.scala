@@ -10,7 +10,7 @@ object MachineLearning{
       .getOrCreate()
 
     //Execute methods
-    val classifier = new MPCC(ss, args(0), args(1), args(2), args(3))
+    val classifier = new MPCC(ss, args(0), args(1), args(2))
 
     var lb = new ListBuffer[classifier.TweetPair]
     val tp1 = classifier.TweetPair("841272947461509120","841288423684075520")
@@ -27,11 +27,8 @@ object MachineLearning{
     lb += tp6
     val listPairs = lb.toList
 
-    var list = classifier.classify(listPairs, true, true)
+    var list = classifier.classify(listPairs)
     println("List Of Model Classifications " + list.mkString(" "))
-
-    list = classifier.classify(listPairs, false, false)
-    println("List Of Saved File Classifcations " + list.mkString(" "))
 
     ss.stop()
   }
