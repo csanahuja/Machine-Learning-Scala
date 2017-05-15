@@ -27,8 +27,11 @@ object MachineLearning{
     lb += tp6
     val listPairs = lb.toList
 
-    var list = classifier.classify(listPairs)
+    var list = classifier.getRelationship(listPairs)
     println("List Of Model Classifications " + list.mkString(" "))
+
+    list = classifier.getRelationship(listPairs)
+    println("List Of Saved File Classifcations " + list.mkString(" "))
 
     ss.stop()
   }
