@@ -1,5 +1,0 @@
-"""
-
-   Corpus util functions
-
-"""
