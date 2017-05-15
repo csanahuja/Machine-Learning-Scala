@@ -22,11 +22,13 @@ class FeatureVectorExtractor:
 
   """
 
-  def __init__(self, FeatureSetFile, compcosine ):
+  def __init__(self, FeatureSetFile, compcosine, vector_file, pairs_file ):
       f = open(  FeatureSetFile, "r" )
       self.attrDic = {}
       self.wordsDic = {}
       self.compcosine = compcosine
+      self.vector_file = vector_file
+      self.pairs_file = pairs_file
       for line in f:
         line = line.strip()
         jobj = json.loads( line )
@@ -41,23 +43,23 @@ class FeatureVectorExtractor:
       # print self.wordsDic.keys()
       # print self.wordsDic.keys().sort()
 
-  def writeFeatureVector( self, argel ):
+  def writeFeatureVector( self, argel, vector_file):
       for attr in sorted( self.attrDic, key=self.attrDic.get, reverse=True ):
           atel = None
           atel = argel.get( attr )
           # print attr, " ",
           if (atel is not None):
              if (self.attrDic[attr] == 'count'):
-               print atel,
+               vector_file.write(str(abs(int(atel)))+" ")
              else:
                if (int(atel) > 0):
-                 print "1",
+                 vector_file.write("1 ")
                else:
-                 print "0",
+                 vector_file.write("0 ")
           else:
-             print "0",
+              vector_file.write("0 ")
 
-      print "",
+      vector_file.write(" ")
       for word in self.wordsDic.keys():
           self.workingwordDic[word] = 0
       for word in re.split(  '[\s,]+' , argel.text ):
@@ -76,7 +78,7 @@ class FeatureVectorExtractor:
                       self.workingwordDic[sb] = 1
 
       for word in sorted(  self.wordsDic, key=self.wordsDic.get, reverse=True ):
-            print  self.workingwordDic[word],
+          vector_file.write(str(self.workingwordDic[word])+" ")
 
   def getvectorfromtext( self, argel ):
       allsubwords = list()
@@ -95,15 +97,18 @@ class FeatureVectorExtractor:
       distance = cosinesim.get_cosine(vector1, vector2)
       return distance
 
-  def writeFeatureVectorsPair( self, rel, telid, tel, helid, hel ):
+  def writeFeatureVectorsPair( self, rel, telid, tel, helid, hel, vector_file, pairs_file ):
       # First, write the pair relation (-1) if it is not known
-      print telid, "  ", helid, "   ", rel, "",
+      vector = str(telid) + "  " + str(helid) + "   " + str(rel) + " "
+      pairs = str(telid) + "  " + str(helid) + "\n"
+      vector_file.write(vector)
+      pairs_file.write(pairs)
       if (self.compcosine):
-        print self.computeCosineDistance( tel, hel ),
-      self.writeFeatureVector( tel )
-      print "",
-      self.writeFeatureVector( hel )
-      print ""
+        vector_file.write(str(self.computeCosineDistance( tel, hel )))
+      self.writeFeatureVector( tel, vector_file )
+      vector_file.write(" ")
+      self.writeFeatureVector( hel, vector_file )
+      vector_file.write("\n")
 
   def writeFeatureHeaderLine(self):
       print '# ansTweetID  scrTweetID   Rel    '.encode('utf-8'),
@@ -133,21 +138,22 @@ class FeatureVectorExtractor:
      root = tree.getroot()
      argroot = root.find( 'argument-list' )
      pairsroot = root.find( 'argument-pairs' )
-     for pair in pairsroot:
-           # find first arg of pair (t)
-           tele = pair.find( 't' )
-           telid = tele.get( 'id' )
-           argt = argroot.find("./arg[@id='{id}']".format(id=str(telid)) )
-           # find second arg of pair (h)
-           hele = pair.find( 'h' )
-           helid = hele.get( 'id' )
-           argh = argroot.find("./arg[@id='{id}']".format(id=str(helid)) )
-           entailrel = pair.get( 'entailment' )
-           if (entailrel is None):
-             rel = "-1"
-           else:
-             rel = self.decodeEntailRel( entailrel )
-           self.writeFeatureVectorsPair( rel, telid, argt, helid, argh )
+     with open(self.vector_file,'w') as vector_file, open(self.pairs_file,'w') as pairs_file:
+         for pair in pairsroot:
+               # find first arg of pair (t)
+               tele = pair.find( 't' )
+               telid = tele.get( 'id' )
+               argt = argroot.find("./arg[@id='{id}']".format(id=str(telid)) )
+               # find second arg of pair (h)
+               hele = pair.find( 'h' )
+               helid = hele.get( 'id' )
+               argh = argroot.find("./arg[@id='{id}']".format(id=str(helid)) )
+               entailrel = pair.get( 'entailment' )
+               if (entailrel is None):
+                 rel = "-1"
+               else:
+                 rel = self.decodeEntailRel( entailrel )
+               self.writeFeatureVectorsPair( rel, telid, argt, helid, argh, vector_file, pairs_file )
 
 
 class ParserVector():
@@ -159,6 +165,6 @@ class ParserVector():
         FeatureSetFile  = self.args.dictionary
         XMLdataset = self.args.xml_file
         computecosine = bool(int(self.args.compute_cosine))
-        FeatureVectorCreator = FeatureVectorExtractor( FeatureSetFile, computecosine )
-        FeatureVectorCreator.writeFeatureHeaderLine()
+        FeatureVectorCreator = FeatureVectorExtractor( FeatureSetFile, computecosine, self.args.vector_file, self.args.pairs_file )
+        #FeatureVectorCreator.writeFeatureHeaderLine()
         FeatureVectorCreator.GetFeatureVectors( XMLdataset )
