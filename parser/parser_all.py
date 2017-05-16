@@ -35,5 +35,3 @@ if __name__ == '__main__' :
     # Second step parse xml to vectors
     parserVector = ParserVector(args)
     parserVector.xml2Vector()
-
-    # Third step
