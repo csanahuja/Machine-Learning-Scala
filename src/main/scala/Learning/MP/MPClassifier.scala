@@ -15,8 +15,8 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassificationMode
 // the result. Modify directly the file (?)
 
 // MultilayerPerceptronClassifier
-class MPC(ss: SparkSession, indexes: String,
-                            input: String,
+class MPC(ss: SparkSession, input: String,
+                            indexes: String,
                             model: String){
 
     // Load indexes
