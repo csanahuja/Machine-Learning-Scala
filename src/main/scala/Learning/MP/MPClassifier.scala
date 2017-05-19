@@ -14,8 +14,8 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassificationMode
 // TODO: Re-Think how to classify tweets passed by parameter and how to return
 // the result. Modify directly the file (?)
 
-// MultilayerPerceptronClassifierCustom
-class MPCC(ss: SparkSession, indexes: String,
+// MultilayerPerceptronClassifier
+class MPC(ss: SparkSession, indexes: String,
                              input: String,
                              model: String){
 
@@ -34,21 +34,11 @@ class MPCC(ss: SparkSession, indexes: String,
     var predictions = Array[Int]()
     predictions = prediction_column.collect.map(_.getDouble(0).toInt)
 
-  def getRelationship(pairs: List[TweetPair]): List[Int] = {
-    return getValues(pairs, pair_indexes, predictions)
-  }
-
-  def getValues(pairs: List[TweetPair], indexes: List[TweetPair], classifications: Array[Int]): List[Int] = {
+  def getRelationship(String id1, String id2): Int = {
     var index = - 1
-    var lb = new ListBuffer[Int]
-    for(pair <- pairs){
-      index = getIndexes(pair,indexes)
-      if (index != -1)
-        lb += classifications(index)
-      else
-        lb += 0
-    }
-    return lb.toList
+    var pair = TweetPair(id1, id2)
+    index = getIndexes(pair,indexes)
+    return if (index != 1) predictions(index) else 0
   }
 
   def getIndexes(pair: TweetPair, indexes: List[TweetPair]): Int = {

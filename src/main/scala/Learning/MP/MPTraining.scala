@@ -14,8 +14,8 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassificationMode
 // as arguments. Make a script to call the program with different parameters.
 // Study the influence of different parameters and see which one are more succes.
 
-// MultilayerPerceptronModelCustom
-object MPMC {
+// MultilayerPerceptronTraining
+object MPT {
 
   class Params(var input : String, var output : String, var maxIters : Int,
                var block: Int, var seed: Long, var layers : Array[Int]) {
