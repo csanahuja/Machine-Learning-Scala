@@ -15,11 +15,11 @@ class MPT(ss: SparkSession, input: String) {
   // Load the data stored in LIBSVM format as a DataFrame.
   val data = ss.read.format("libsvm").load(input)
 
-  class Params(var training_size : Double = 0.75, var maxIters : Int = 100, var seed: Long = 1234L,
+  case class Params(var training_size : Double = 0.75, var maxIters : Int = 100, var seed: Long = 1234L,
                var block: Int = 128, var layers : Array[Int] = Array.empty[Int])
 
   def generateModel(in_params: Params, output_file: String = "",
-                    random: Boolean = false, accuracy_log : Boolean = false) {
+                    random: Boolean = false): Double = {
 
 
     // Set Layers
@@ -45,19 +45,15 @@ class MPT(ss: SparkSession, input: String) {
       .setMaxIter(params.maxIters)
     val model = trainer.fit(train)
 
-    // Get Accuracy
-    val accuracy = getAccuracy(model, test)
-    if (accuracy_log)
-       printf("Accuracy: " + accuracy + "\n")
-
-
     // Save model
     if(output_file == "")
       model.write.overwrite().save("target/tmp/MPM")
     else
       model.write.overwrite().save(output_file)
 
-    ss.stop()
+    // Get Accuracy
+    val accuracy = getAccuracy(model, test)
+    return accuracy
     }
 
     // Set to the layers the features and classes

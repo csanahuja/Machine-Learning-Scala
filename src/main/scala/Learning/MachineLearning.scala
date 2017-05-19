@@ -12,20 +12,16 @@ object MachineLearning{
 
     //Execute methods
     val model = new MPT(ss, args(0))
-    model.generateModel(new model.Params(), "target/tmp/MPM")
+    val accuracy = model.generateModel(new model.Params(), "target/tmp/MPM")
+    println("DEBUG : ACCURACY => " + accuracy)
+
     val classifier = new MPC(ss, args(0), args(1), "target/tmp/MPM")
+    var relationShip = classifier.getRelationship(588748014438764544L, 588727284061863936L)
+    println("DEBUG : LABEL => " + relationShip)
 
     //Test to do
     // val file = scala.io.Source.fromFile("/parser/files/conversation.json")
-
-    // pairs {("841272947461509120","841288423684075520")
-    //         ("841272947461509120","841288423684075524")
-    //         ("841272947461509120","841288423684075521")
-    //         ("841272947461509120","841288423684075522")
-    //         ("841272947461509120","841288423684075520")}
-
-    var relationShip = classifier.getRelationship(588748014438764544L, 588727284061863936L)
-    println("Value" + relationShip)
+    
     ss.stop()
   }
 
