@@ -18,7 +18,6 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassificationMode
 class MPCC(ss: SparkSession, indexes: String,
                              input: String,
                              model: String){
-  {
 
     // Load indexes
     val text = ss.read.textFile(indexes)
@@ -30,11 +29,10 @@ class MPCC(ss: SparkSession, indexes: String,
     // Classifies
     val results = mp_model.transform(data)
     // Get Prediction column
-    val prediction_column = result.select("prediction")
+    val prediction_column = results.select("prediction")
     // Get Predictions
     var predictions = Array[Int]()
     predictions = prediction_column.collect.map(_.getDouble(0).toInt)
-  }
 
   def getRelationship(pairs: List[TweetPair]): List[Int] = {
     return getValues(pairs, pair_indexes, predictions)
