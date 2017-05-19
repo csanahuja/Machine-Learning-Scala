@@ -7,6 +7,10 @@ if __name__ == '__main__' :
 
     # Parse arguments
     parser = argparse.ArgumentParser(description = 'No')
+
+    # Training or parsing a conversation
+    parser.add_argument('-t', '--training', default=False, help="Boolean training", action='store_true', dest = 'training')
+
     # Files
     parser.add_argument('-j', '--json', default = 'files/conversation.json', type = str, help = 'Json File', dest = 'json_file')
     parser.add_argument('-x', '--xml', default = 'files/conversation.xml', type = str, help = 'Xml File', dest = 'xml_file')
@@ -29,8 +33,11 @@ if __name__ == '__main__' :
     args = parser.parse_args()
 
     # First step parse json to xml
-    parserXML = ParserXML(args)
-    parserXML.json2XML()
+    print args.xml_file
+    if args.training is False:
+        print "not Training"
+        parserXML = ParserXML(args)
+        parserXML.json2XML()
 
     # Second step parse xml to vectors
     parserVector = ParserVector(args)
