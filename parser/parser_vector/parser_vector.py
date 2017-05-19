@@ -102,6 +102,7 @@ class FeatureVectorExtractor:
       vector = str(telid) + "  " + str(helid) + "   " + str(rel) + " "
       pairs = str(telid) + "  " + str(helid) + "\n"
       #vector_file.write(vector)
+      vector_file.write(str(rel)+" ")
       pairs_file.write(pairs)
       if (self.compcosine):
         vector_file.write(str(self.computeCosineDistance( tel, hel )))
