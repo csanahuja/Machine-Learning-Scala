@@ -27,11 +27,10 @@ if __name__ == '__main__' :
     # Third step
     parser.add_argument('-cos', '--cosine', default = 0, type = int, help = 'Boolean compute cosine', dest = 'compute_cosine')
     parser.add_argument("-den", "--dense", dest="dense",help="Dense format", action='store_true', default=False)
-    parser.add_argument("-n", "--nlabels", dest="elabels",help="Filter out tweet labels", action='store_false', default=True)
-    parser.add_argument("-e", "--elabels", dest="elabels",help="Filter out tweet labels", action='store_true' )
+    parser.add_argument("-l", "--elabels", dest="elabels",help="Filter out tweet labels", action='store_true', default=False)
 
     args = parser.parse_args()
-
+    print args.elabels
     # First step parse json to xml
     print args.xml_file
     if args.training is False:
