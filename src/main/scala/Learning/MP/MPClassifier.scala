@@ -16,8 +16,8 @@ import org.apache.spark.ml.classification.MultilayerPerceptronClassificationMode
 
 // MultilayerPerceptronClassifier
 class MPC(ss: SparkSession, indexes: String,
-                             input: String,
-                             model: String){
+                            input: String,
+                            model: String){
 
     // Load indexes
     val text = ss.read.textFile(indexes)
@@ -34,11 +34,11 @@ class MPC(ss: SparkSession, indexes: String,
     var predictions = Array[Int]()
     predictions = prediction_column.collect.map(_.getDouble(0).toInt)
 
-  def getRelationship(String id1, String id2): Int = {
-    var index = - 1
-    var pair = TweetPair(id1, id2)
-    index = getIndexes(pair,indexes)
-    return if (index != 1) predictions(index) else 0
+  def getRelationship(id1: Long, id2: Long): String = {
+    var pair = TweetPair(id1.toString, id2.toString)
+    var index = getIndexes(pair, pair_indexes)
+    var label = if (index > 0) predictions(index) else 0
+    return getMeaningOfLabel(label)
   }
 
   def getIndexes(pair: TweetPair, indexes: List[TweetPair]): Int = {
@@ -49,6 +49,15 @@ class MPC(ss: SparkSession, indexes: String,
       i += 1
     }
     return -1
+  }
+
+  def getMeaningOfLabel(relation: Int): String = {
+    val meaning = relation match{
+      case 1 => "attack"
+      case 2 => "support"
+      case _ => "noone"
+    }
+    return meaning
   }
 
   case class TweetPair(id1: String, id2: String)
