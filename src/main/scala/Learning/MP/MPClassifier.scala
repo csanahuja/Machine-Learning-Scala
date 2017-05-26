@@ -34,11 +34,11 @@ class MPC(ss: SparkSession, input: String,
     var predictions = Array[Int]()
     predictions = prediction_column.collect.map(_.getDouble(0).toInt)
 
-  def getRelationship(id1: Long, id2: Long): String = {
+  def getRelationship(id1: Long, id2: Long) = {
     var pair = TweetPair(id1.toString, id2.toString)
     var index = getIndexes(pair, pair_indexes)
     var label = if (index > 0) predictions(index) else 0
-    return getMeaningOfLabel(label)
+    getMeaningOfLabel(label)
   }
 
   def getIndexes(pair: TweetPair, indexes: List[TweetPair]): Int = {
@@ -51,18 +51,17 @@ class MPC(ss: SparkSession, input: String,
     return -1
   }
 
-  def getMeaningOfLabel(relation: Int): String = {
+  def getMeaningOfLabel(relation: Int) = {
     val meaning = relation match{
       case 1 => "attack"
       case 2 => "support"
       case _ => "noone"
     }
-    return meaning
   }
 
   case class TweetPair(id1: String, id2: String)
 
-  def parseTweetPair(str: String): TweetPair = {
+  def parseTweetPair(str: String) = {
     val line = str.split("  ")
     TweetPair(line(0), line(1))
   }
