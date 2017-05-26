@@ -63,7 +63,7 @@ class MPC(ss: SparkSession, input: String,
   case class TweetPair(id1: String, id2: String)
 
   def parseTweetPair(str: String): TweetPair = {
-    val line = str.split(" ")
+    val line = str.split("  ")
     TweetPair(line(0), line(1))
   }
 
